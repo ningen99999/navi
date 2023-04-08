@@ -1,9 +1,8 @@
 import asyncio
+import requests
 import discord
 import Color
-import bot_token
 from yt_dlp import YoutubeDL
-from requests import get
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -14,7 +13,8 @@ client = discord.Client(intents=intents)
 QUEUE = []
 
 PREFIX = '>'
-BOT_TOKEN = bot_token.BOT_TOKEN
+# TEST BOT_TOKEN = 'MTAyMjQxNjMyODI3MjkwNDIzMg.Gg9fTh.YAklykbHriTBCEDW-MDrI1ksLCIZ2t17_EyjA8'
+BOT_TOKEN = 'Nzc2ODI2NTM1NTg2OTU1Mjg1.X66iFg.461ig4w7c6WrKh8eM4NsdlO_Agg'
 FFMPEG_PATH = '/usr/bin/ffmpeg'
 FFMPEG_BEFORE_OPTIONS = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
 
@@ -85,6 +85,15 @@ async def on_message(message):
                     await text_channel.send('***Queue Empty***')
             case 'clear':
                 QUEUE.clear()
+            case 'remove' if command_args:
+                try:
+                    index = int(command_args)
+                except:
+                    print('Invalid index for removal')
+                    return
+                else:
+                    if 0 < index <= len(QUEUE):
+                        QUEUE.pop(index-1)
 
 
 def yt_search(arg):
@@ -93,18 +102,13 @@ def yt_search(arg):
 
     with YoutubeDL(options) as ydl:
         try:
-            get(arg)
+            requests.get(arg)
         except:
             video = ydl.extract_info(f"ytsearch:{arg}", download=False)['entries'][0]
         else:
             video = ydl.extract_info(arg, download=False)
 
     return video
-
-
-def create_snippet(ydl_info):
-    snippet = [[ydl_info['title'], ydl_info['original_url'], 'youtube']]
-    return snippet
 
 
 async def connect(voice_channel, message_data):
@@ -132,6 +136,12 @@ def format_queue():
     return formatted_queue
 
 
+def refresh_queue():    # Don't know if this works as intended
+    for index, song in enumerate(QUEUE):    # Read through QUEUE
+        if requests.head(song['url']).status_code == 403:   # Check if url is expired at index
+            QUEUE[index] = yt_search(song['original_url'])  # Reload the song and overwrite
+
+
 async def send_now_playing_message(message_data, ytdlp_info):
     await message_data.channel.send(f"```Now Playing 👽 {ytdlp_info['title']} 👽 {ytdlp_info['duration_string']}```")
 
@@ -145,6 +155,10 @@ async def play_next(voice_client, message_data):
         await send_now_playing_message(message_data, QUEUE[0])
         current_song = QUEUE.pop(0)
         url = current_song['url']
+        if requests.head(url).status_code == 403:   # Url expired
+            # Reload song data
+            current_song = yt_search(current_song['original_url'])
+            url = current_song['url']
         source = await discord.FFmpegOpusAudio.from_probe(url, before_options=FFMPEG_BEFORE_OPTIONS)
 
         def my_after(error):

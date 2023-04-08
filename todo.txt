@@ -1,0 +1,4 @@
+Track playback history in xml doc
+Make webpage that displays playback history and lets you click a + on each to add it to the current playback playlist
+Allow to remove entries from the list
+Autoscrub bad links for deleted videos
