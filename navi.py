@@ -2,6 +2,7 @@ import asyncio
 import requests
 import discord
 import Color
+import bot_token
 from yt_dlp import YoutubeDL
 
 intents = discord.Intents.default()
@@ -13,8 +14,7 @@ client = discord.Client(intents=intents)
 QUEUE = []
 
 PREFIX = '>'
-# TEST BOT_TOKEN = 'MTAyMjQxNjMyODI3MjkwNDIzMg.Gg9fTh.YAklykbHriTBCEDW-MDrI1ksLCIZ2t17_EyjA8'
-BOT_TOKEN = 'Nzc2ODI2NTM1NTg2OTU1Mjg1.X66iFg.461ig4w7c6WrKh8eM4NsdlO_Agg'
+BOT_TOKEN = bot_token.BOT_TOKEN
 FFMPEG_PATH = '/usr/bin/ffmpeg'
 FFMPEG_BEFORE_OPTIONS = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
 
